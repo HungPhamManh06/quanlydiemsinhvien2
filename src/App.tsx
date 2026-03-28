@@ -180,8 +180,8 @@ export default function App() {
         {/* Logo */}
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden">
+            <img src="/logo2.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-bold text-gray-900 text-sm leading-tight">UTT Grade</h1>
