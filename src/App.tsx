@@ -165,12 +165,14 @@ export default function App() {
     .join('')
     .toUpperCase()
     .slice(0, 2);
- return (
+
+  return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
       {/* Sidebar - chỉ hiện trên desktop lg+ */}
       <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-[260px] bg-white border-r border-gray-100 shadow-lg lg:shadow-none flex-col transition-transform duration-300 hidden lg:flex ${
         sidebarOpen ? 'translate-x-0 !flex' : '-translate-x-full lg:translate-x-0'
@@ -178,8 +180,8 @@ export default function App() {
         {/* Logo */}
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden">
-            <img src="/logo2.png" alt="Logo" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="font-bold text-gray-900 text-sm leading-tight">UTT Grade</h1>
@@ -261,7 +263,8 @@ export default function App() {
           </div>
         </div>
       </aside>
- {/* Main Content */}
+
+      {/* Main Content */}
       <main className="flex-1 min-h-screen flex flex-col">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden">
@@ -273,6 +276,7 @@ export default function App() {
               </div>
               <span className="font-bold text-gray-800 text-sm">UTT Grade</span>
             </div>
+
             <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500">
               <span>📍</span>
               <span className="font-medium text-gray-900">
@@ -280,6 +284,7 @@ export default function App() {
               </span>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
               <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-emerald-500' : 'bg-amber-500'}`} />
@@ -293,11 +298,13 @@ export default function App() {
             />
           </div>
         </header>
+
         {/* Content - thêm padding bottom cho mobile để không bị bottom nav che */}
         <div className="flex-1 p-3 sm:p-5 lg:p-8 max-w-[1400px] mx-auto w-full pb-24 lg:pb-8">
           {renderContent()}
         </div>
       </main>
+
       {/* ===== MOBILE BOTTOM NAVIGATION ===== */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl print:hidden">
         {/* Tab title trên mobile */}
@@ -306,6 +313,7 @@ export default function App() {
             {tabs.find(t => t.id === activeTab)?.label}
           </span>
         </div>
+
         {/* Navigation items */}
         <div className="grid grid-cols-6 items-center">
           {tabs.map(tab => (
@@ -336,6 +344,7 @@ export default function App() {
             </button>
           ))}
         </div>
+
         {/* Safe area for phones with home indicator */}
         <div className="h-safe-area-inset-bottom bg-white" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
       </nav>
@@ -349,6 +358,7 @@ export default function App() {
           onUserUpdate={handleUserUpdate}
         />
       )}
+
       {/* Gemini AI Chatbot */}
       <GeminiChat
         students={students}
@@ -358,3 +368,4 @@ export default function App() {
       />
     </div>
   );
+}
