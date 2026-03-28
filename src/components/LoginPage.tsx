@@ -165,7 +165,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <GraduationCap className="w-9 h-9 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">UniGrade</h1>
+              <h1 className="text-3xl font-bold text-white">UTT Grade</h1>
               <p className="text-blue-200 text-sm">Hệ thống Quản lý Điểm Sinh viên</p>
             </div>
           </div>
@@ -588,8 +588,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Footer */}
           <div className="text-center mt-6 text-blue-200/50 text-xs">
-            <p>© 2024 UniGrade - Hệ thống Quản lý Điểm Sinh viên</p>
-            <p className="mt-1">Phát triển bởi Đại học XYZ</p>
+            <p>© 2026 UTT Grade - Hệ thống Quản lý Điểm Sinh viên</p>
+            <p className="mt-1">Phát triển bởi nhóm sinh viên Đại học CNGTVT </p>
           </div>
         </div>
       </div>
