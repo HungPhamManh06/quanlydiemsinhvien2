@@ -28,44 +28,62 @@ app.use(express.static(distPath));
 // For any non-API route, serve index.html (SPA support)
 app.get('/{*splat}', (req, res) => {
   if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(distPath, 'index.html'));
+    const indexFile = path.join(distPath, 'index.html');
+    res.sendFile(indexFile, (err) => {
+      if (err) {
+        res.status(500).send('Không tìm thấy file index.html. Hãy chạy "npm run build" trước.');
+      }
+    });
   }
 });
 
 // Start server
 async function start() {
   try {
+    console.log('🔄 Đang kết nối database...');
+    console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Đã cấu hình' : '❌ Chưa cấu hình'}`);
+    console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+    
     // Initialize database tables
     await initDatabase();
 
     // Seed sample data if database is empty
     const hasData = await hasSampleData();
-    if (!hasData) {
-      console.log('📦 Database is empty, seeding sample data...');
-      // Import fetch to call our own seed endpoint after server starts
-    }
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║   🎓 Quản Lý Điểm Sinh Viên - Server Started    ║
 ║                                                   ║
 ║   🌐 URL: http://localhost:${PORT}                  ║
 ║   📡 API: http://localhost:${PORT}/api              ║
-║   📦 DB:  PostgreSQL Connected                    ║
+║   📦 DB:  PostgreSQL Connected ✅                 ║
+║   🔒 ENV: ${process.env.NODE_ENV || 'development'}                          ║
 ╚═══════════════════════════════════════════════════╝
       `);
 
       // Auto-seed if empty
       if (!hasData) {
+        console.log('📦 Database trống, đang tạo dữ liệu mẫu...');
         fetch(`http://localhost:${PORT}/api/seed`, { method: 'POST' })
           .then(r => r.json())
-          .then(d => console.log('✅ Sample data seeded:', d.message))
-          .catch(e => console.log('⚠️  Could not auto-seed:', e.message));
+          .then(d => console.log('✅ Dữ liệu mẫu đã được tạo:', d.message))
+          .catch(e => console.log('⚠️  Không thể tự tạo dữ liệu mẫu:', e.message));
       }
     });
   } catch (err) {
-    console.error('❌ Failed to start server:', err.message);
+    console.error('');
+    console.error('╔════════════════════════════════════════════════════════╗');
+    console.error('║  ❌ KHÔNG THỂ KHỞI ĐỘNG SERVER                       ║');
+    console.error('╠════════════════════════════════════════════════════════╣');
+    console.error(`║  Lỗi: ${err.message}`);
+    console.error('║                                                        ║');
+    console.error('║  Kiểm tra:                                             ║');
+    console.error('║  1. DATABASE_URL có đúng không?                        ║');
+    console.error('║  2. Database PostgreSQL có đang chạy không?            ║');
+    console.error('║  3. IP có được whitelist trên database không?          ║');
+    console.error('╚════════════════════════════════════════════════════════╝');
+    console.error('');
     process.exit(1);
   }
 }
