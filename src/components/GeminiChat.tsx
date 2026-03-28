@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
+// Dùng fetch API trực tiếp thay vì @google/genai để tránh lỗi version
 import { Student, Subject, Grade } from '../types';
 import {
   MessageCircle, X, Send, Bot, User, Loader2,
@@ -149,7 +149,6 @@ ${grades.map(g => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const context = buildContext();
 
       const prompt = `Bạn là AI trợ lý thông minh hỗ trợ hệ thống quản lý điểm sinh viên đại học. 
@@ -161,15 +160,34 @@ ${context}
 
 Câu hỏi của người dùng: ${text}`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt,
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1024,
+            },
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const replyText = data?.candidates?.[0]?.content?.parts?.[0]?.text
+        || 'Xin lỗi, tôi không thể trả lời câu hỏi này.';
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.text || 'Xin lỗi, tôi không thể trả lời câu hỏi này.',
+        content: replyText,
         timestamp: new Date(),
       };
 
