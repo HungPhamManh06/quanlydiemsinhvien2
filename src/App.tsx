@@ -12,6 +12,7 @@ import SubjectManagement from './components/SubjectManagement';
 import GradeManagement from './components/GradeManagement';
 import Transcript from './components/Transcript';
 import Statistics from './components/Statistics';
+import GeminiChat from './components/GeminiChat';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardList, FileText, BarChart3,
   GraduationCap, Database, Cloud, HardDrive, Loader2, LogOut
@@ -348,6 +349,12 @@ export default function App() {
           onUserUpdate={handleUserUpdate}
         />
       )}
+      {/* Gemini AI Chatbot */}
+      <GeminiChat
+        students={students}
+        subjects={subjects}
+        grades={grades}
+        apiKey={import.meta.env.VITE_GEMINI_API_KEY || ''}
+      />
     </div>
   );
-}
