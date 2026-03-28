@@ -216,7 +216,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 <GraduationCap className="w-7 h-7 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="text-2xl font-bold text-white">UniGrade</h1>
+                <h1 className="text-2xl font-bold text-white">UTT Grade</h1>
                 <p className="text-blue-200 text-xs">Quản lý Điểm Sinh viên</p>
               </div>
             </div>
