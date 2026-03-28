@@ -344,7 +344,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   <div className="space-y-2">
                     <button
                       type="button"
-                      onClick={() => { setLoginUsername('admin'); setLoginPassword('admin123'); }}
+                      onClick={() => { setLoginUsername('admin'); setLoginPassword('Admin@123'); }}
                       className="w-full flex items-center justify-between p-2.5 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-sm transition-all text-left group"
                     >
                       <div>
@@ -360,7 +360,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     >
                       <div>
                         <span className="text-xs font-bold text-gray-800">Giảng viên</span>
-                        <span className="text-xs text-gray-400 ml-2">giangvien / gv123456</span>
+                        <span className="text-xs text-gray-400 ml-2">giangvien / Gv@123456</span>
                       </div>
                       <span className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md font-medium group-hover:bg-blue-200 transition-colors">Giảng viên</span>
                     </button>
