@@ -164,9 +164,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <div className={`hidden lg:flex flex-col justify-center w-1/2 relative z-10 p-12 xl:p-20 transition-all duration-1000 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
         <div className="max-w-lg">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-              <GraduationCap className="w-12 h-12 text-white" />
-            </div>
+          <div className="w-20 h-20 rounded-2xl overflow-hidden">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
             <div>
               <h1 className="text-3xl font-bold text-white">UTT Grade</h1>
               <p className="text-blue-200 text-sm">Hệ thống Quản lý Điểm Sinh viên - UTT</p>
@@ -215,9 +215,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="inline-flex items-center gap-3 mb-3">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-                <GraduationCap className="w-10 h-10 text-white" />
-              </div>
+              <div className="w-20 h-20 rounded-2xl overflow-hidden">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                </div>
               <div className="text-left">
                 <h1 className="text-2xl font-bold text-white">UTT Grade</h1>
                 <p className="text-blue-200 text-xs">Quản lý Điểm Sinh viên - UTT</p>
@@ -663,8 +663,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Footer */}
           <div className="text-center mt-6 text-blue-200/50 text-xs">
-            <p>© 2025 - Hệ thống Quản lý Điểm Sinh viên</p>
-            <p className="mt-1">Phát triển bởi Trường Đại học Công nghệ Giao thông Vận tải (UTT)</p>
+            <p>© 2026 - Hệ thống Quản lý Điểm Sinh viên</p>
+            <p className="mt-1">Phát triển bởi Nhóm sinh viên của Trường Đại học Công nghệ Giao thông Vận tải (UTT)</p>
           </div>
         </div>
       </div>
