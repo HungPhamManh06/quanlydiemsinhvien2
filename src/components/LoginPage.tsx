@@ -348,7 +348,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       className="w-full flex items-center justify-between p-2.5 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-sm transition-all text-left group"
                     >
                       <div>
-                        <span className="text-xs font-bold text-gray-800">Admin</span>
+                        <span className="text-xs font-bold text-gray-800">admin</span>
                         <span className="text-xs text-gray-400 ml-2">admin / Admin@123</span>
                       </div>
                       <span className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 rounded-md font-medium group-hover:bg-red-200 transition-colors">Quản trị</span>
