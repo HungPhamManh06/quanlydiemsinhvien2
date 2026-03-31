@@ -344,7 +344,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   <div className="space-y-2">
                     <button
                       type="button"
-                      onClick={() => { setLoginUsername('admin'); setLoginPassword('Admin@123'); }}
+                      onClick={() => { setLoginUsername('Admin@'); setLoginPassword('Admin@123'); }}
                       className="w-full flex items-center justify-between p-2.5 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-sm transition-all text-left group"
                     >
                       <div>
