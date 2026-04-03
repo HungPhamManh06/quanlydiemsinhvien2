@@ -9,9 +9,10 @@ interface ProfileDropdownProps {
   onLogout: () => void;
   onOpenProfile: () => void;
   onOpenChangePassword: () => void;
+  onOpenSettings: () => void;
 }
 
-export default function ProfileDropdown({ user, onLogout, onOpenProfile, onOpenChangePassword }: ProfileDropdownProps) {
+export default function ProfileDropdown({ user, onLogout, onOpenProfile, onOpenChangePassword, onOpenSettings }: ProfileDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -85,7 +86,7 @@ export default function ProfileDropdown({ user, onLogout, onOpenProfile, onOpenC
               Đổi mật khẩu
             </button>
             <button
-              onClick={() => { setOpen(false); }}
+              onClick={() => { setOpen(false); onOpenSettings(); }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <Settings className="w-4 h-4 text-gray-400" />
