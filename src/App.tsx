@@ -192,7 +192,7 @@ export default function App() {
       {/* Sidebar */}
       <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-[260px] bg-white border-r border-gray-100 shadow-lg lg:shadow-none flex-col transition-transform duration-300 hidden lg:flex ${
         sidebarOpen ? 'translate-x-0 !flex' : '-translate-x-full lg:translate-x-0'
-      } print:hidden dark:bg-gray-900 dark:border-gray-700`}>
+      } print:hidden`}>
         {/* Logo */}
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -283,7 +283,7 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 min-h-screen flex flex-col">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden dark:bg-gray-900/90 dark:border-gray-700">
+        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
             {/* Mobile logo */}
             <div className="flex lg:hidden items-center gap-2">
