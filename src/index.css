@@ -132,6 +132,28 @@ th {
   color: var(--text-base);
 }
 
+/* ===== LOGIN PAGE EXCEPTION ===== */
+/* Phần trái login có nền tối (gradient) nên cần override màu chữ thành trắng */
+.login-left-panel h1,
+.login-left-panel h2,
+.login-left-panel h3,
+.login-left-panel p,
+.login-left-panel span,
+.login-left-panel div {
+  color: inherit !important;
+}
+.login-left-panel {
+  color: #ffffff !important;
+}
+/* Footer login cũng cần trắng */
+.login-footer {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+.login-footer p,
+.login-footer span {
+  color: inherit !important;
+}
+
 /* Light text utilities */
 .text-gray-900 {
   color: var(--text-strong) !important;
