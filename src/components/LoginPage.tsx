@@ -161,7 +161,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       </div>
 
       {/* Left side - Features (hidden on mobile) */}
-      <div className={`hidden lg:flex flex-col justify-center w-1/2 relative z-10 p-12 xl:p-20 transition-all duration-1000 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`} style={{ colorScheme: 'dark' }}>
+      <div className={`login-left-panel hidden lg:flex flex-col justify-center w-1/2 relative z-10 p-12 xl:p-20 transition-all duration-1000 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`} style={{ colorScheme: 'dark' }}>
         <div className="max-w-lg">
           <div className="flex items-center gap-4 mb-8">
           <div className="w-20 h-20 rounded-2xl overflow-hidden">
@@ -662,7 +662,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-6 text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
+          <div className="login-footer text-center mt-6 text-xs">
             <p>© 2026 - Hệ thống Quản lý Điểm Sinh viên</p>
             <p className="mt-1">Phát triển bởi Nhóm sinh viên của Trường Đại học Công nghệ Giao thông Vận tải (UTT)</p>
           </div>
