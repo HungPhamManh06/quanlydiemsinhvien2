@@ -14,6 +14,7 @@ import Transcript from './components/Transcript';
 import Statistics from './components/Statistics';
 import GeminiChat from './components/GeminiChat';
 import { ToastProvider } from './components/Toast';
+import SettingsModal from './components/SettingsModal';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardList, FileText, BarChart3,
   GraduationCap, Database, Cloud, HardDrive, Loader2, LogOut, Moon, Sun
@@ -39,6 +40,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
   const [modalMode, setModalMode] = useState<'profile' | 'password' | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -322,6 +324,7 @@ export default function App() {
               onLogout={handleLogout}
               onOpenProfile={() => setModalMode('profile')}
               onOpenChangePassword={() => setModalMode('password')}
+              onOpenSettings={() => setSettingsOpen(true)}
             />
           </div>
         </header>
@@ -375,6 +378,18 @@ export default function App() {
         {/* Safe area for phones with home indicator */}
         <div className="h-safe-area-inset-bottom bg-white" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
       </nav>
+
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <SettingsModal
+          onClose={() => setSettingsOpen(false)}
+          darkMode={darkMode}
+          onToggleDark={() => setDarkMode(!darkMode)}
+          students={students}
+          subjects={subjects}
+          grades={grades}
+        />
+      )}
 
       {/* Profile / Password Modal */}
       {modalMode && (
