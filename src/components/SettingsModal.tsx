@@ -3,7 +3,7 @@ import { Student, Subject, Grade } from '../types';
 import {
   X, Palette, Bell, Database, Info, Moon, Sun, Type, Download,
   Shield, Clock, Wifi, CheckCircle, ChevronRight, Monitor, Volume2,
-  VolumeX, Save, RotateCcw, Globe, Cpu, HardDrive, Activity
+  VolumeX, RotateCcw, Globe, Cpu, HardDrive, Activity
 } from 'lucide-react';
 import { useToast } from './Toast';
 
@@ -19,40 +19,37 @@ interface Props {
 type Category = 'display' | 'notifications' | 'data' | 'system';
 
 const accentColors = [
-  { id: 'blue',    name: 'Xanh dương', class: 'bg-blue-500',   hex: '#3b82f6' },
-  { id: 'violet',  name: 'Tím',         class: 'bg-violet-500', hex: '#8b5cf6' },
-  { id: 'emerald', name: 'Xanh lá',     class: 'bg-emerald-500',hex: '#10b981' },
-  { id: 'rose',    name: 'Hồng',        class: 'bg-rose-500',   hex: '#f43f5e' },
-  { id: 'amber',   name: 'Vàng',        class: 'bg-amber-500',  hex: '#f59e0b' },
-  { id: 'indigo',  name: 'Chàm',        class: 'bg-indigo-500', hex: '#6366f1' },
+  { id: 'blue',    name: 'Xanh dương', class: 'bg-blue-500',    hex: '#3b82f6' },
+  { id: 'violet',  name: 'Tím',         class: 'bg-violet-500',  hex: '#8b5cf6' },
+  { id: 'emerald', name: 'Xanh lá',     class: 'bg-emerald-500', hex: '#10b981' },
+  { id: 'rose',    name: 'Hồng',        class: 'bg-rose-500',    hex: '#f43f5e' },
+  { id: 'amber',   name: 'Vàng',        class: 'bg-amber-500',   hex: '#f59e0b' },
+  { id: 'indigo',  name: 'Chàm',        class: 'bg-indigo-500',  hex: '#6366f1' },
 ];
 
 const fontSizes = [
-  { id: 'sm',  label: 'Nhỏ',   px: '13px' },
-  { id: 'md',  label: 'Vừa',   px: '15px' },
-  { id: 'lg',  label: 'Lớn',   px: '17px' },
+  { id: 'sm', label: 'Nhỏ', px: '13px' },
+  { id: 'md', label: 'Vừa', px: '15px' },
+  { id: 'lg', label: 'Lớn', px: '17px' },
 ];
 
 export default function SettingsModal({ onClose, darkMode, onToggleDark, students, subjects, grades }: Props) {
   const toast = useToast();
   const [category, setCategory] = useState<Category>('display');
 
-  // Settings state — đọc từ localStorage
-  const [fontSize, setFontSize] = useState(() => localStorage.getItem('fontSize') || 'md');
-  const [accent,   setAccent]   = useState(() => localStorage.getItem('accentColor') || 'violet');
-  const [notifyToast, setNotifyToast]   = useState(() => localStorage.getItem('notifyToast') !== 'false');
-  const [notifySound, setNotifySound]   = useState(() => localStorage.getItem('notifySound') === 'true');
-  const [autoBackup, setAutoBackup]     = useState(() => localStorage.getItem('autoBackup') === 'true');
-  const [compactView, setCompactView]   = useState(() => localStorage.getItem('compactView') === 'true');
+  // UI preferences only — lưu localStorage (đây là tùy chỉnh giao diện, KHÔNG phải dữ liệu)
+  const [fontSize,    setFontSize]    = useState(() => localStorage.getItem('fontSize')    || 'md');
+  const [accent,      setAccent]      = useState(() => localStorage.getItem('accentColor') || 'violet');
+  const [notifyToast, setNotifyToast] = useState(() => localStorage.getItem('notifyToast') !== 'false');
+  const [notifySound, setNotifySound] = useState(() => localStorage.getItem('notifySound') === 'true');
+  const [compactView, setCompactView] = useState(() => localStorage.getItem('compactView') === 'true');
 
-  // Apply font size
   useEffect(() => {
     const size = fontSizes.find(f => f.id === fontSize);
     if (size) document.documentElement.style.fontSize = size.px;
     localStorage.setItem('fontSize', fontSize);
   }, [fontSize]);
 
-  // Apply accent color as CSS variable
   useEffect(() => {
     const color = accentColors.find(c => c.id === accent);
     if (color) document.documentElement.style.setProperty('--accent', color.hex);
@@ -61,11 +58,11 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
 
   useEffect(() => { localStorage.setItem('notifyToast', String(notifyToast)); }, [notifyToast]);
   useEffect(() => { localStorage.setItem('notifySound', String(notifySound)); }, [notifySound]);
-  useEffect(() => { localStorage.setItem('autoBackup', String(autoBackup)); }, [autoBackup]);
   useEffect(() => { localStorage.setItem('compactView', String(compactView)); }, [compactView]);
 
+  // Xuất dữ liệu từ PostgreSQL (đã được load vào state từ API)
   const handleExportData = () => {
-    const data = { students, subjects, grades, exportedAt: new Date().toISOString(), version: '2.0' };
+    const data = { students, subjects, grades, exportedAt: new Date().toISOString(), version: '2.0', source: 'PostgreSQL (Render)' };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -73,28 +70,19 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
     a.download = `utt-grade-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Xuất thành công!', `Đã tải xuống ${students.length} SV, ${grades.length} bản ghi điểm`);
+    toast.success('Xuất thành công!', `Đã tải xuống ${students.length} SV, ${grades.length} bản ghi điểm từ PostgreSQL`);
   };
 
   const handleResetPreferences = () => {
-    if (!confirm('Đặt lại tất cả tùy chọn về mặc định?')) return;
+    if (!confirm('Đặt lại tất cả tùy chọn giao diện về mặc định?')) return;
     setFontSize('md');
     setAccent('violet');
     setNotifyToast(true);
     setNotifySound(false);
-    setAutoBackup(false);
     setCompactView(false);
-    if (darkMode) onToggleDark(); // reset về light
-    toast.info('Đã đặt lại!', 'Tất cả tùy chọn đã về mặc định');
+    if (darkMode) onToggleDark();
+    toast.info('Đã đặt lại!', 'Tất cả tùy chọn giao diện đã về mặc định');
   };
-
-  const storageUsed = (() => {
-    let total = 0;
-    for (const key of ['students','subjects','grades']) {
-      total += (localStorage.getItem(key) || '').length;
-    }
-    return (total / 1024).toFixed(1);
-  })();
 
   const loginTime = (() => {
     const t = sessionStorage.getItem('loginTime') || Date.now().toString();
@@ -104,10 +92,10 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
   })();
 
   const categories = [
-    { id: 'display'       as Category, icon: Palette,  label: 'Giao diện'       },
-    { id: 'notifications' as Category, icon: Bell,     label: 'Thông báo'       },
-    { id: 'data'          as Category, icon: Database,  label: 'Dữ liệu & Bảo mật' },
-    { id: 'system'        as Category, icon: Info,      label: 'Hệ thống'        },
+    { id: 'display'       as Category, icon: Palette,  label: 'Giao diện' },
+    { id: 'notifications' as Category, icon: Bell,     label: 'Thông báo' },
+    { id: 'data'          as Category, icon: Database,  label: 'Dữ liệu' },
+    { id: 'system'        as Category, icon: Info,      label: 'Hệ thống' },
   ];
 
   return (
@@ -134,7 +122,7 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
 
         {/* Body */}
         <div className="flex flex-1 min-h-0">
-          {/* Sidebar */}
+          {/* Sidebar categories */}
           <div className="w-44 border-r border-gray-100 p-3 flex flex-col gap-1 flex-shrink-0">
             {categories.map(cat => {
               const Icon = cat.icon;
@@ -142,9 +130,7 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
               return (
                 <button key={cat.id} onClick={() => setCategory(cat.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
-                    active
-                      ? 'bg-violet-50 text-violet-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    active ? 'bg-violet-50 text-violet-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}>
                   <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-violet-500' : 'text-gray-400'}`} />
                   <span className="truncate">{cat.label}</span>
@@ -154,7 +140,7 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
             })}
           </div>
 
-          {/* Content */}
+          {/* Content panel */}
           <div className="flex-1 overflow-y-auto p-6">
 
             {/* ===== GIAO DIỆN ===== */}
@@ -209,9 +195,8 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                   <div className="flex flex-wrap gap-3">
                     {accentColors.map(c => (
-                      <button key={c.id} onClick={() => setAccent(c.id)}
-                        title={c.name}
-                        className={`group flex flex-col items-center gap-1.5 transition-all`}>
+                      <button key={c.id} onClick={() => setAccent(c.id)} title={c.name}
+                        className="group flex flex-col items-center gap-1.5 transition-all">
                         <div className={`w-9 h-9 ${c.class} rounded-xl shadow-sm transition-all ${
                           accent === c.id ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
                         }`}>
@@ -244,11 +229,10 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                 </div>
 
-                {/* Reset button */}
                 <button onClick={handleResetPreferences}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition-colors mt-2">
+                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition-colors">
                   <RotateCcw className="w-4 h-4" />
-                  Đặt lại về mặc định
+                  Đặt lại giao diện về mặc định
                 </button>
               </div>
             )}
@@ -295,20 +279,18 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   );
                 })}
 
-                {/* Notification preview */}
+                {/* Preview */}
                 <div className="p-4 border border-dashed border-gray-200 rounded-2xl">
                   <p className="text-xs text-gray-500 mb-3 font-medium">XEM THỬ THÔNG BÁO</p>
                   <div className="flex gap-2 flex-wrap">
-                    {(['success','error','warning','info'] as const).map(type => (
+                    {(['success', 'error', 'warning', 'info'] as const).map(type => (
                       <button key={type} onClick={() => {
-                        const msgs = {
+                        const msgs: Record<string, [string, string]> = {
                           success: ['Thành công!', 'Thao tác hoàn thành'],
                           error:   ['Lỗi!',        'Đã xảy ra lỗi hệ thống'],
                           warning: ['Cảnh báo!',   'Vui lòng kiểm tra lại'],
                           info:    ['Thông tin',   'Phiên bản mới đã sẵn sàng'],
                         };
-                        (useToast as unknown as () => {success: Function; error: Function; warning: Function; info: Function});
-                        // Just trigger via the hook approach
                         toast[type](msgs[type][0], msgs[type][1]);
                       }}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 ${
@@ -325,19 +307,21 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
               </div>
             )}
 
-            {/* ===== DỮ LIỆU & BẢO MẬT ===== */}
+            {/* ===== DỮ LIỆU ===== */}
             {category === 'data' && (
               <div className="space-y-5">
-                <h3 className="text-base font-bold text-gray-900">Dữ liệu & Bảo mật</h3>
+                <h3 className="text-base font-bold text-gray-900">Dữ liệu (PostgreSQL · Render)</h3>
 
-                {/* Storage info */}
+                {/* DB Stats */}
                 <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">Bộ nhớ đang dùng</p>
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">
+                    📦 Dữ liệu đang lưu trên PostgreSQL
+                  </p>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     {[
                       { label: 'Sinh viên',  value: students.length, color: 'text-blue-600' },
                       { label: 'Môn học',    value: subjects.length, color: 'text-emerald-600' },
-                      { label: 'Bản ghi Điểm', value: grades.length,   color: 'text-violet-600' },
+                      { label: 'Bản ghi Điểm', value: grades.length, color: 'text-violet-600' },
                     ].map(item => (
                       <div key={item.label} className="bg-white rounded-xl p-3 shadow-sm">
                         <p className={`text-xl font-black ${item.color}`}>{item.value}</p>
@@ -347,7 +331,7 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                   <div className="mt-3 flex items-center gap-2 text-xs text-blue-600">
                     <HardDrive className="w-3.5 h-3.5" />
-                    <span>Chiếm ~{storageUsed} KB trong localStorage</span>
+                    <span>Lưu trữ bền vững trên <strong>PostgreSQL 18</strong> · Render · Singapore</span>
                   </div>
                 </div>
 
@@ -359,29 +343,10 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                   <div className="text-left flex-1">
                     <p className="text-sm font-bold text-gray-800">Xuất dữ liệu (JSON)</p>
-                    <p className="text-xs text-gray-500">Tải xuống toàn bộ SV, môn học và điểm</p>
+                    <p className="text-xs text-gray-500">Tải xuống toàn bộ dữ liệu từ PostgreSQL ra file JSON</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-violet-400" />
                 </button>
-
-                {/* Auto backup */}
-                <div className="p-4 bg-gray-50 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center">
-                        <Save className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">Backup tự động</p>
-                        <p className="text-xs text-gray-500">Tự lưu dữ liệu mỗi 30 phút</p>
-                      </div>
-                    </div>
-                    <button onClick={() => setAutoBackup(!autoBackup)}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${autoBackup ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoBackup ? 'translate-x-6' : ''}`} />
-                    </button>
-                  </div>
-                </div>
 
                 {/* Session info */}
                 <div className="p-4 bg-gray-50 rounded-2xl space-y-2">
@@ -390,9 +355,9 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                     <span className="text-sm font-semibold text-gray-700">Phiên đăng nhập hiện tại</span>
                   </div>
                   {[
-                    { icon: Clock,  label: 'Thời gian đăng nhập', value: loginTime },
-                    { icon: Globe,  label: 'Trình duyệt',          value: navigator.userAgent.includes('Chrome') ? 'Google Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Trình duyệt khác' },
-                    { icon: Wifi,   label: 'Trạng thái',           value: navigator.onLine ? '🟢 Trực tuyến' : '🔴 Ngoại tuyến' },
+                    { icon: Clock, label: 'Thời gian đăng nhập', value: loginTime },
+                    { icon: Globe, label: 'Trình duyệt', value: navigator.userAgent.includes('Chrome') ? 'Google Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Trình duyệt khác' },
+                    { icon: Wifi,  label: 'Trạng thái kết nối', value: navigator.onLine ? '🟢 Trực tuyến' : '🔴 Ngoại tuyến' },
                   ].map(row => {
                     const Icon = row.icon;
                     return (
@@ -414,7 +379,6 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
               <div className="space-y-5">
                 <h3 className="text-base font-bold text-gray-900">Thông tin hệ thống</h3>
 
-                {/* App info card */}
                 <div className="p-5 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl text-white">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -427,10 +391,10 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: 'Phiên bản', value: 'v2.0.0' },
-                      { label: 'Build',     value: '2026.04' },
-                      { label: 'React',     value: '18.x' },
-                      { label: 'TypeScript',value: '5.x' },
+                      { label: 'Phiên bản',  value: 'v2.0.0' },
+                      { label: 'Build',      value: '2026.04' },
+                      { label: 'React',      value: '18.x' },
+                      { label: 'TypeScript', value: '5.x' },
                     ].map(item => (
                       <div key={item.label} className="bg-white/10 rounded-xl px-3 py-2">
                         <p className="text-[10px] text-violet-200">{item.label}</p>
@@ -440,16 +404,15 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                 </div>
 
-                {/* Tech stack */}
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Công nghệ sử dụng</p>
                   <div className="space-y-2">
                     {[
-                      { icon: Cpu,       tech: 'React 18', desc: 'UI Framework',         color: 'bg-blue-500' },
-                      { icon: Globe,     tech: 'TypeScript 5', desc: 'Ngôn ngữ lập trình', color: 'bg-indigo-500' },
-                      { icon: Palette,   tech: 'Tailwind CSS v4', desc: 'Styling',         color: 'bg-cyan-500' },
-                      { icon: Activity,  tech: 'Vite',     desc: 'Build Tool',            color: 'bg-purple-500' },
-                      { icon: HardDrive, tech: 'LocalStorage / PostgreSQL', desc: 'Lưu trữ dữ liệu', color: 'bg-emerald-500' },
+                      { icon: Cpu,       tech: 'React 18',            desc: 'UI Framework',             color: 'bg-blue-500'    },
+                      { icon: Globe,     tech: 'TypeScript 5',         desc: 'Ngôn ngữ lập trình',      color: 'bg-indigo-500'  },
+                      { icon: Palette,   tech: 'Tailwind CSS v4',      desc: 'Styling',                  color: 'bg-cyan-500'    },
+                      { icon: Activity,  tech: 'Vite + Node.js',       desc: 'Build & Server',           color: 'bg-purple-500'  },
+                      { icon: HardDrive, tech: 'PostgreSQL 18 (Render)',desc: 'Cơ sở dữ liệu chính',    color: 'bg-emerald-500' },
                     ].map(item => {
                       const Icon = item.icon;
                       return (
@@ -468,14 +431,13 @@ export default function SettingsModal({ onClose, darkMode, onToggleDark, student
                   </div>
                 </div>
 
-                {/* Status */}
                 <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
                     <span className="text-sm font-semibold text-emerald-700">Hệ thống hoạt động bình thường</span>
                   </div>
-                  <p className="text-xs text-emerald-600 mt-1.5 ml-4.5">
-                    Tất cả dịch vụ đang chạy ổn định • Cập nhật lần cuối: hôm nay
+                  <p className="text-xs text-emerald-600 mt-1.5 ml-4">
+                    PostgreSQL · Render Singapore · Cập nhật lần cuối: hôm nay
                   </p>
                 </div>
               </div>
