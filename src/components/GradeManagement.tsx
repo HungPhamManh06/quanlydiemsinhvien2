@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Student, Subject, Grade } from '../types';
 import * as api from '../api';
-import { Plus, Search, Edit2, Trash2, X, ClipboardList, ClipboardPlus, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, ClipboardList, ClipboardPlus, Loader2, Filter, FileSpreadsheet } from 'lucide-react';
+import { useToast } from './Toast';
+import ExcelImportModal from './ExcelImportModal';
 
 interface Props {
   students: Student[];
@@ -11,7 +13,9 @@ interface Props {
 }
 
 export default function GradeManagement({ students, subjects, grades, onRefresh }: Props) {
+  const toast = useToast();
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     studentId: '', subjectId: '', semester: '',
@@ -83,7 +87,7 @@ export default function GradeManagement({ students, subjects, grades, onRefresh 
       resetForm();
     } catch (err) {
       console.error('Error saving grade:', err);
-      alert('Lỗi khi lưu điểm. Vui lòng thử lại.');
+      toast.error('Lỗi!', 'Không thể lưu điểm. Vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
@@ -106,14 +110,13 @@ export default function GradeManagement({ students, subjects, grades, onRefresh 
   const handleDelete = async (grade: Grade) => {
     const student = students.find(s => s.id === grade.studentId);
     const subject = subjects.find(s => s.id === grade.subjectId);
-    if (confirm(`Xóa điểm "${subject?.name}" của "${student?.name}"?`)) {
-      try {
-        await api.deleteGrade(grade.id);
-        await onRefresh();
-      } catch (err) {
-        console.error('Error deleting grade:', err);
-        alert('Lỗi khi xóa điểm.');
-      }
+    if (!confirm(`Xóa điểm "${subject?.name}" của "${student?.name}"?`)) return;
+    try {
+      await api.deleteGrade(grade.id);
+      await onRefresh();
+      toast.success('Đã xóa!', `Xóa điểm môn ${subject?.name} thành công`);
+    } catch {
+      toast.error('Lỗi!', 'Không thể xóa điểm.');
     }
   };
 
@@ -134,47 +137,83 @@ export default function GradeManagement({ students, subjects, grades, onRefresh 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 page-transition">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <ClipboardList className="w-8 h-8 text-violet-500" /> Quản Lý Điểm
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-2">
+            <ClipboardList className="w-7 h-7 text-violet-500" /> Quản Lý Điểm
           </h1>
-          <p className="text-gray-500 mt-1">Tổng cộng {grades.length} bản ghi điểm</p>
+          <p className="text-gray-500 mt-1 text-sm">Tổng cộng {grades.length} bản ghi điểm</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 bg-violet-600 text-white px-5 py-2.5 rounded-xl hover:bg-violet-700 transition-colors shadow-lg shadow-violet-500/20 font-medium"
-        >
-          <ClipboardPlus className="w-4 h-4" /> Nhập Điểm
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 bg-white border border-green-300 text-green-700 px-4 py-2.5 rounded-xl
+              hover:bg-green-50 transition-all font-semibold text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <FileSpreadsheet className="w-4 h-4" /> Import Excel
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white px-5 py-2.5 rounded-xl
+              hover:from-violet-700 hover:to-purple-700 transition-all shadow-lg shadow-violet-500/25 font-semibold
+              hover:scale-[1.02] active:scale-[0.98] btn-ripple"
+          >
+            <ClipboardPlus className="w-4 h-4" /> Nhập Điểm
+          </button>
+        </div>
       </div>
 
       {/* Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" placeholder="Tìm theo tên SV, mã SV, tên môn..."
             value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none"
+            className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none text-sm bg-white"
           />
+          {search && (
+            <button onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 outline-none bg-white min-w-[140px]">
-          <option value="">Tất cả HK</option>
-          {semesters.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={filterSubject} onChange={e => setFilterSubject(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 outline-none bg-white min-w-[160px]">
-          <option value="">Tất cả môn</option>
-          {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+        <div className="relative">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
+            className="pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 outline-none bg-white min-w-[140px] text-sm appearance-none">
+            <option value="">Tất cả HK</option>
+            {semesters.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          {filterSemester && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-violet-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">1</span>}
+        </div>
+        <div className="relative">
+          <select value={filterSubject} onChange={e => setFilterSubject(e.target.value)}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 outline-none bg-white min-w-[160px] text-sm">
+            <option value="">Tất cả môn</option>
+            {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          {filterSubject && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-violet-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">1</span>}
+        </div>
       </div>
+
+      {/* Excel Import Modal */}
+      {showImport && (
+        <ExcelImportModal
+          type="grades"
+          students={students}
+          subjects={subjects}
+          grades={grades}
+          onClose={() => setShowImport(false)}
+          onSuccess={onRefresh}
+        />
+      )}
 
       {/* Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={resetForm}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={resetForm}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-xl font-bold">{editingId ? '✏️ Sửa Điểm' : '➕ Nhập Điểm Mới'}</h2>
               <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
@@ -260,75 +299,86 @@ export default function GradeManagement({ students, subjects, grades, onRefresh 
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-left text-gray-600">
-                <th className="px-4 py-3 font-semibold">#</th>
-                <th className="px-4 py-3 font-semibold">Sinh viên</th>
-                <th className="px-4 py-3 font-semibold">Môn học</th>
-                <th className="px-4 py-3 font-semibold">Học kỳ</th>
-                <th className="px-4 py-3 font-semibold text-center">CC (10%)</th>
-                <th className="px-4 py-3 font-semibold text-center">GK (30%)</th>
-                <th className="px-4 py-3 font-semibold text-center">CK (60%)</th>
-                <th className="px-4 py-3 font-semibold text-center">TB</th>
-                <th className="px-4 py-3 font-semibold text-center">Xếp loại</th>
-                <th className="px-4 py-3 font-semibold text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((grade, index) => {
-                const student = students.find(s => s.id === grade.studentId);
-                const subject = subjects.find(s => s.id === grade.subjectId);
-                return (
-                  <tr key={grade.id} className="border-t hover:bg-violet-50/50 transition-colors">
-                    <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900">{student?.name || 'N/A'}</div>
-                      <div className="text-xs text-gray-500">{student?.studentId} • {student?.className}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-800">{subject?.name || 'N/A'}</div>
-                      <div className="text-xs text-gray-500">{subject?.credits} tín chỉ</div>
-                    </td>
-                    <td className="px-4 py-3"><span className="px-2 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-medium">{grade.semester}</span></td>
-                    <td className={`px-4 py-3 text-center ${getScoreColor(grade.attendanceScore)}`}>{grade.attendanceScore ?? '-'}</td>
-                    <td className={`px-4 py-3 text-center ${getScoreColor(grade.midtermScore)}`}>{grade.midtermScore ?? '-'}</td>
-                    <td className={`px-4 py-3 text-center ${getScoreColor(grade.finalScore)}`}>{grade.finalScore ?? '-'}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`text-lg font-bold ${getScoreColor(grade.averageScore)}`}>
-                        {grade.averageScore?.toFixed(2) ?? '-'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        grade.letterGrade === 'A+' || grade.letterGrade === 'A' ? 'bg-emerald-100 text-emerald-700' :
-                        grade.letterGrade === 'B+' || grade.letterGrade === 'B' ? 'bg-blue-100 text-blue-700' :
-                        grade.letterGrade === 'C+' || grade.letterGrade === 'C' ? 'bg-amber-100 text-amber-700' :
-                        grade.letterGrade === 'D+' || grade.letterGrade === 'D' ? 'bg-orange-100 text-orange-700' :
-                        grade.letterGrade === 'F' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {grade.letterGrade}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => handleEdit(grade)} className="p-2 hover:bg-violet-100 rounded-lg text-violet-600" title="Sửa"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(grade)} className="p-2 hover:bg-red-100 rounded-lg text-red-600" title="Xóa"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr><td colSpan={10} className="px-4 py-12 text-center text-gray-400">
-                  {search || filterSemester || filterSubject ? 'Không tìm thấy kết quả' : 'Chưa có điểm nào. Hãy nhập điểm mới!'}
-                </td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+              <ClipboardList className="w-10 h-10 text-gray-300" />
+            </div>
+            <p className="text-gray-500 font-semibold">{search || filterSemester || filterSubject ? 'Không tìm thấy kết quả' : 'Chưa có điểm nào'}</p>
+            <p className="text-gray-400 text-sm mt-1">{search || filterSemester || filterSubject ? 'Thử thay đổi bộ lọc' : 'Nhấn "Nhập Điểm" để bắt đầu'}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
+                  <th className="px-4 py-3.5 font-semibold">#</th>
+                  <th className="px-4 py-3.5 font-semibold">Sinh viên</th>
+                  <th className="px-4 py-3.5 font-semibold">Môn học</th>
+                  <th className="px-4 py-3.5 font-semibold">Học kỳ</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">CC (10%)</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">GK (30%)</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">CK (60%)</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">TB</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">Xếp loại</th>
+                  <th className="px-4 py-3.5 font-semibold text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((grade, index) => {
+                  const student = students.find(s => s.id === grade.studentId);
+                  const subject = subjects.find(s => s.id === grade.subjectId);
+                  return (
+                    <tr key={grade.id} className="border-t border-gray-50 hover:bg-violet-50/40 transition-colors">
+                      <td className="px-4 py-3 text-gray-400 text-xs">{index + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-gray-900 text-sm">{student?.name || 'N/A'}</div>
+                        <div className="text-[11px] text-gray-400">{student?.studentId} • {student?.className}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-800 text-sm">{subject?.name || 'N/A'}</div>
+                        <div className="text-[11px] text-gray-400">{subject?.credits} tín chỉ</div>
+                      </td>
+                      <td className="px-4 py-3"><span className="px-2.5 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-semibold">{grade.semester}</span></td>
+                      <td className={`px-4 py-3 text-center font-semibold ${getScoreColor(grade.attendanceScore)}`}>{grade.attendanceScore ?? '–'}</td>
+                      <td className={`px-4 py-3 text-center font-semibold ${getScoreColor(grade.midtermScore)}`}>{grade.midtermScore ?? '–'}</td>
+                      <td className={`px-4 py-3 text-center font-semibold ${getScoreColor(grade.finalScore)}`}>{grade.finalScore ?? '–'}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-base font-black ${getScoreColor(grade.averageScore)}`}>
+                          {grade.averageScore?.toFixed(2) ?? '–'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          grade.letterGrade === 'A+' || grade.letterGrade === 'A' ? 'badge-A-plus' :
+                          grade.letterGrade === 'B+' ? 'badge-B-plus' :
+                          grade.letterGrade === 'B' ? 'badge-B' :
+                          grade.letterGrade === 'C+' ? 'badge-C-plus' :
+                          grade.letterGrade === 'C' ? 'badge-C' :
+                          grade.letterGrade === 'D+' || grade.letterGrade === 'D' ? 'badge-D' :
+                          grade.letterGrade === 'F' ? 'badge-F' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {grade.letterGrade}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => handleEdit(grade)} className="p-2 hover:bg-violet-100 rounded-xl text-violet-600 transition-all hover:scale-110" title="Sửa"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(grade)} className="p-2 hover:bg-red-100 rounded-xl text-red-500 transition-all hover:scale-110" title="Xóa"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {filtered.length > 0 && (
+          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-500">
+            Hiển thị <strong>{filtered.length}</strong> / {grades.length} bản ghi điểm
+          </div>
+        )}
       </div>
     </div>
   );

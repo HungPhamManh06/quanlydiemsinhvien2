@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Subject } from '../types';
 import * as api from '../api';
-import { Plus, Search, Edit2, Trash2, X, BookOpen, BookPlus, Loader2, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, BookOpen, BookPlus, Loader2, Filter, FileSpreadsheet } from 'lucide-react';
 import { useToast } from './Toast';
+import ExcelImportModal from './ExcelImportModal';
 
 interface Props {
   subjects: Subject[];
@@ -18,6 +19,7 @@ export default function SubjectManagement({ subjects, onRefresh }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState('');
@@ -125,14 +127,23 @@ export default function SubjectManagement({ subjects, onRefresh }: Props) {
             {activeFilters > 0 && <span className="ml-2 text-emerald-600 font-medium">(đang lọc)</span>}
           </p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-2.5 rounded-xl
-            hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 font-semibold
-            hover:scale-[1.02] active:scale-[0.98] btn-ripple"
-        >
-          <BookPlus className="w-4 h-4" /> Thêm Môn Học
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 bg-white border border-green-300 text-green-700 px-4 py-2.5 rounded-xl
+              hover:bg-green-50 transition-all font-semibold text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <FileSpreadsheet className="w-4 h-4" /> Import Excel
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-2.5 rounded-xl
+              hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 font-semibold
+              hover:scale-[1.02] active:scale-[0.98] btn-ripple"
+          >
+            <BookPlus className="w-4 h-4" /> Thêm Môn Học
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter */}
@@ -173,6 +184,16 @@ export default function SubjectManagement({ subjects, onRefresh }: Props) {
         <p className="text-sm text-gray-500 animate-fade-in-up">
           Tìm thấy <strong className="text-gray-800">{filtered.length}</strong> kết quả
         </p>
+      )}
+
+      {/* Excel Import Modal */}
+      {showImport && (
+        <ExcelImportModal
+          type="subjects"
+          subjects={subjects}
+          onClose={() => setShowImport(false)}
+          onSuccess={onRefresh}
+        />
       )}
 
       {/* Modal */}
