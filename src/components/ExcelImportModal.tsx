@@ -268,14 +268,43 @@ export default function ExcelImportModal({ type, students = [], subjects = [], g
       return;
     }
     const tpl = TEMPLATES[type];
-    const ws = XLSX.utils.aoa_to_sheet([tpl.headers, ...tpl.sample]);
 
-    // Style header row width
+    // For grades: generate template with real student/subject data from system
+    let sampleData: (string | number)[][];
+    if (type === 'grades' && students.length > 0 && subjects.length > 0) {
+      sampleData = [
+        [students[0]?.studentId ?? 'SV001', subjects[0]?.subjectId ?? 'MH001', subjects[0]?.semester || 'HK1-2024', '', '', ''],
+        [students[0]?.studentId ?? 'SV001', subjects[1]?.subjectId ?? 'MH002', subjects[1]?.semester || 'HK1-2024', 9, 8.5, 7.5],
+        [students[1]?.studentId ?? 'SV002', subjects[0]?.subjectId ?? 'MH001', subjects[0]?.semester || 'HK1-2024', 8, 7, 8],
+      ];
+    } else {
+      sampleData = tpl.sample;
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet([tpl.headers, ...sampleData]);
+
+    // If grades, add a reference sheet with available students and subjects
+    const wb = XLSX.utils.book_new();
     const colWidths = tpl.headers.map((h: string) => ({ wch: Math.max(h.length + 5, 18) }));
     ws['!cols'] = colWidths;
-
-    const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Dữ liệu');
+
+    if (type === 'grades') {
+      // Add helper sheet with available students
+      const svHeaders = ['Mã SV', 'Họ tên', 'Lớp'];
+      const svRows = students.map(s => [s.studentId, s.name, s.className]);
+      const wsSV = XLSX.utils.aoa_to_sheet([svHeaders, ...svRows]);
+      wsSV['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, wsSV, 'Danh sách SV');
+
+      // Add helper sheet with available subjects
+      const mhHeaders = ['Mã MH', 'Tên môn học', 'Số tín chỉ', 'Học kỳ'];
+      const mhRows = subjects.map(s => [s.subjectId, s.name, s.credits, s.semester]);
+      const wsMH = XLSX.utils.aoa_to_sheet([mhHeaders, ...mhRows]);
+      wsMH['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 12 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsMH, 'Danh sách MH');
+    }
+
     XLSX.writeFile(wb, `mau_import_${type}.xlsx`);
   }
 
@@ -462,6 +491,42 @@ export default function ExcelImportModal({ type, students = [], subjects = [], g
                   onChange={e => { const f = e.target.files?.[0]; if (f) handleFileDrop(f); e.target.value = ''; }}
                 />
               </div>
+
+              {/* Grade-specific: list of available students & subjects */}
+              {type === 'grades' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="px-3 py-2 bg-blue-50 border-b border-blue-100">
+                      <p className="text-xs font-bold text-blue-700">👥 Mã SV có sẵn ({students.length})</p>
+                    </div>
+                    <div className="max-h-28 overflow-y-auto divide-y divide-gray-50">
+                      {students.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-3">Chưa có sinh viên</p>
+                      ) : students.map(s => (
+                        <div key={s.id} className="px-3 py-1.5 flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-blue-600">{s.studentId}</span>
+                          <span className="text-xs text-gray-600 truncate">{s.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="px-3 py-2 bg-violet-50 border-b border-violet-100">
+                      <p className="text-xs font-bold text-violet-700">📚 Mã MH có sẵn ({subjects.length})</p>
+                    </div>
+                    <div className="max-h-28 overflow-y-auto divide-y divide-gray-50">
+                      {subjects.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-3">Chưa có môn học</p>
+                      ) : subjects.map(s => (
+                        <div key={s.id} className="px-3 py-1.5 flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-violet-600">{s.subjectId}</span>
+                          <span className="text-xs text-gray-600 truncate">{s.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -579,8 +644,14 @@ export default function ExcelImportModal({ type, students = [], subjects = [], g
                             <td className="px-3 py-2">{str(r.data.semester) || '–'}</td>
                           </>}
                           {type === 'grades' && <>
-                            <td className="px-3 py-2 font-mono text-violet-600">{str(r.data.studentCode)}</td>
-                            <td className="px-3 py-2 font-mono text-violet-600">{str(r.data.subjectCode)}</td>
+                            <td className="px-3 py-2">
+                              <span className="font-mono text-xs font-bold text-violet-600">{str(r.data.studentCode)}</span>
+                              {(() => { const sv = students.find(s => s.studentId === str(r.data.studentCode)); return sv ? <span className="text-xs text-gray-500 ml-1">({sv.name})</span> : null; })()}
+                            </td>
+                            <td className="px-3 py-2">
+                              <span className="font-mono text-xs font-bold text-violet-600">{str(r.data.subjectCode)}</span>
+                              {(() => { const mh = subjects.find(s => s.subjectId === str(r.data.subjectCode)); return mh ? <span className="text-xs text-gray-500 ml-1">({mh.name})</span> : null; })()}
+                            </td>
                             <td className="px-3 py-2">{str(r.data.semester)}</td>
                             <td className="px-3 py-2 text-center">{r.data.attendanceScore ?? '–'}</td>
                             <td className="px-3 py-2 text-center">{r.data.midtermScore ?? '–'}</td>
@@ -652,7 +723,11 @@ export default function ExcelImportModal({ type, students = [], subjects = [], g
                       <span className="text-xs text-gray-600 truncate">
                         {type === 'students' && str(r.data.name)}
                         {type === 'subjects' && str(r.data.name)}
-                        {type === 'grades' && `${str(r.data.studentCode)} - ${str(r.data.subjectCode)}`}
+                        {type === 'grades' && (() => {
+                          const sv = students.find(s => s.studentId === str(r.data.studentCode));
+                          const mh = subjects.find(s => s.subjectId === str(r.data.subjectCode));
+                          return `${sv?.name || str(r.data.studentCode)} — ${mh?.name || str(r.data.subjectCode)}`;
+                        })()}
                       </span>
                       <span className={`ml-auto text-xs font-semibold shrink-0 ${r.status === 'success' ? 'text-emerald-600' : r.status === 'failed' ? 'text-red-600' : 'text-amber-600'}`}>
                         {r.status === 'success' ? 'Thành công' : r.status === 'failed' ? r.message || 'Thất bại' : 'Bỏ qua (lỗi)'}
